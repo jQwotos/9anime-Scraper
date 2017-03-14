@@ -7,8 +7,10 @@ Github: jQwotos
 import os
 import logging
 import re
+import glob
 
 import requests
+from bs4 import BeautifulSoup
 
 import constants
 
@@ -46,9 +48,9 @@ def search(keyword, numResults = 99):
                         'link': show.findAll(attrs={'class': 'name'})[0]['href'],
                         'title': show.findAll(attrs={'class': 'name'})[0].text,
                     })
-            else
+            else:
                 logging.info("Could not find any Shows when searching for %s" % (keyword))
-        else
+        else:
             logging.info("Unable to find any rows pertaining to search query %s" % (keyword))
     logging.info("Found a total of %i shows when searching for %s at a limit of %i shows." % (len(shows), keyword, numResults))
     return shows
@@ -70,4 +72,56 @@ def get_mp4(id):
 
     data = requests.get(constants.GRABBER_API, params=payload).json()['data']
     logging.info("Recieved %i different links for id %s" % (len(data), payload['id']))
+
     return data
+
+def getAllEpisodes(link):
+    data = {
+        "episodes": [],
+    }
+    page = BeautifulSoup(requests.get(link).content)
+
+    servers = page.findAll("div", {"class": "server row"})
+
+    data["title"] = page.findAll("h1", {"class": "title"})[0]
+
+    for server in servers:
+        episodes = server.findAll("a")
+
+        for episode in episodes:
+            data['episodes'].append({
+                "id": episode['data-id'],
+                "link": episode['href'],
+                "epNumber": episode['data-base'],
+            })
+        break
+
+    return data
+
+def download(link, location = ""):
+    data = getAllEpisodes(link)
+    if location = "":
+        location = data['title']
+    if not os.path.exists(location):
+        os.makedirs(location)
+    os.chdir(location)
+    alreadyExists = glob.glob("*.mp4")
+
+    for f in glob.glob("*.tmp"):
+        os.remove(f)
+
+    for episode in data['episodes']:
+        directLink = get_mp4(episode['id'])[-1]['file']
+        download = requests.get(directLink, stream=True)
+        tempFile = episode['epNumber'] + ".tmp"
+        fileName = episode['epNumber'] + ".mp4"
+        if fileName not in alreadyExists:
+            with open(tempFile, 'wb') as f:
+                for chunk in download.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+                    else:
+                        logging.warning("Chunk download error when writing to %s for %s at %s" % (filename, link, directLink))
+                os.rename(tempFile, fileName)
+        else:
+            logging.info("Already downloaded episode %s when trying to download %s" % (fileName, location))
