@@ -83,7 +83,7 @@ def getAllEpisodes(link):
 
     servers = page.findAll("div", {"class": "server row"})
 
-    data["title"] = page.findAll("h1", {"class": "title"})[0]
+    data["title"] = page.findAll("h1", {"class": "title"})[0].text
 
     for server in servers:
         episodes = server.findAll("a")
@@ -100,8 +100,8 @@ def getAllEpisodes(link):
 
 def download(link, location = ""):
     data = getAllEpisodes(link)
-    if location = "":
-        location = data['title']
+    if location == "":
+        location = str(data['title'])
     if not os.path.exists(location):
         os.makedirs(location)
     os.chdir(location)
