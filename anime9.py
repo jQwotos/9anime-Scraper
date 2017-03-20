@@ -161,4 +161,4 @@ def download(link, **kwargs):
                         logging.warning("Chunk download error when writing to %s for %s at %s" % (filename, link, directLink))
                 os.rename(tempFile, fileName)
         else:
-            logging.info("Already downloaded episode %s when trying to download %s" % (fileName, location))
+            logging.info("Already downloaded episode %s when trying to download %s" % (fileName))
