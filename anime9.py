@@ -17,6 +17,8 @@ from bs4 import BeautifulSoup
 
 import constants
 
+logging.basicConfig(level=logging.DEBUG)
+
 # Returns a list of results
 def search(keyword, numResults = 99):
     '''
@@ -132,14 +134,15 @@ def download(link, **kwargs):
         os.remove(f)
 
     for episode in data['episodes']:
-        directLink = get_mp4(episode['id'])[-1]['file']
-        download = requests.get(directLink, stream=True)
         if 'epName' in kwargs:
             fileName = kwargs['epName'].replace('$EPNUM', episode['epNumber'])
         else:
             fileName = episode['epNumber'] + ".mp4"
-        tempFile = episode['epNumber'] + ".tmp"
+
         if fileName not in alreadyExists:
+            directLink = get_mp4(episode['id'])[-1]['file']
+            download = requests.get(directLink, stream=True)
+            tempFile = episode['epNumber'] + ".tmp"
             with open(tempFile, 'wb') as f:
 
 
@@ -161,4 +164,4 @@ def download(link, **kwargs):
                         logging.warning("Chunk download error when writing to %s for %s at %s" % (filename, link, directLink))
                 os.rename(tempFile, fileName)
         else:
-            logging.info("Already downloaded episode %s when trying to download %s" % (fileName))
+            logging.info("Already downloaded episode %s" % (fileName))
