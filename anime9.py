@@ -124,7 +124,7 @@ def download(link, **kwargs):
     if 'location' in kwargs:
         if not os.path.exists(kwargs['location']):
             os.makedirs(kwargs['location'])
-            os.chdir(kwargs['location'])
+        os.chdir(kwargs['location'])
     if not os.path.exists(str(data['title'])):
         os.makedirs(str(data['title']))
     os.chdir(str(data['title']))
@@ -166,11 +166,3 @@ def download(link, **kwargs):
                 os.rename(tempFile, fileName)
         else:
             logging.info("Already downloaded episode %s" % (fileName))
-
-def downloadQuery(query, location, **kwargs):
-    '''
-
-    Downloads a show based on seach position
-
-    '''
-    download(search(query)[location]['link'], **kwargs)
