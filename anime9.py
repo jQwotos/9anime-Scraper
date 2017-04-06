@@ -9,6 +9,9 @@ import logging
 import re
 import glob
 
+import time
+import sys
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -76,10 +79,21 @@ def get_mp4(id):
     return data
 
 def getAllEpisodes(link):
+    '''
+
+    Returns the details of all of the episodes found on a series
+    [{'title': 'name of series'}, 'episodes': [{
+        'id': '9anime id for episode',
+        'name': 'name of episode, typically episode number',
+        'link': 'link to the episode',
+        'epNumber': int(episode position number in series)
+        }]]
+
+    '''
     data = {
         "episodes": [],
     }
-    page = BeautifulSoup(requests.get(link).content)
+    page = BeautifulSoup(requests.get(link).content, 'html.parser')
 
     servers = page.findAll("div", {"class": "server row"})
 
@@ -91,6 +105,7 @@ def getAllEpisodes(link):
         for episode in episodes:
             data['episodes'].append({
                 "id": episode['data-id'],
+                "name": episode.text,
                 "link": episode['href'],
                 "epNumber": episode['data-base'],
             })
@@ -98,30 +113,56 @@ def getAllEpisodes(link):
 
     return data
 
-def download(link, location = ""):
+def download(link, **kwargs):
+    '''
+
+    Downloads a whole series, to either a designated location
+    or the name of the series
+
+    '''
     data = getAllEpisodes(link)
-    if location == "":
-        location = str(data['title'])
-    if not os.path.exists(location):
-        os.makedirs(location)
-    os.chdir(location)
+    if 'location' in kwargs:
+        if not os.path.exists(kwargs['location']):
+            os.makedirs(kwargs['location'])
+        os.chdir(kwargs['location'])
+    if not os.path.exists(str(data['title'])):
+        os.makedirs(str(data['title']))
+    os.chdir(str(data['title']))
+
     alreadyExists = glob.glob("*.mp4")
 
     for f in glob.glob("*.tmp"):
         os.remove(f)
 
     for episode in data['episodes']:
-        directLink = get_mp4(episode['id'])[-1]['file']
-        download = requests.get(directLink, stream=True)
-        tempFile = episode['epNumber'] + ".tmp"
-        fileName = episode['epNumber'] + ".mp4"
+        if 'epName' in kwargs:
+            fileName = kwargs['epName'].replace('$EPNUM', episode['epNumber'])
+        else:
+            fileName = episode['epNumber'] + ".mp4"
+
         if fileName not in alreadyExists:
+            directLink = get_mp4(episode['id'])[-1]['file']
+            download = requests.get(directLink, stream=True)
+            tempFile = episode['epNumber'] + ".tmp"
             with open(tempFile, 'wb') as f:
+
+
+                length = download.headers.get('content-length')
+                start = time.clock()
+                current = 0
+
+
                 for chunk in download.iter_content(chunk_size=1024):
+
+
+                    current += len(chunk)
+                    sys.stdout.write("\r %s bps" % (current // (time.clock() - start)))
+
+
                     if chunk:
                         f.write(chunk)
                     else:
                         logging.warning("Chunk download error when writing to %s for %s at %s" % (filename, link, directLink))
                 os.rename(tempFile, fileName)
         else:
-            logging.info("Already downloaded episode %s when trying to download %s" % (fileName, location))
+            logging.info("Already downloaded episode %s" % (fileName))
