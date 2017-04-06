@@ -166,3 +166,34 @@ def download(link, **kwargs):
                 os.rename(tempFile, fileName)
         else:
             logging.info("Already downloaded episode %s" % (fileName))
+
+def getSeriesInfo(link):
+    '''
+    
+    Return information related to series in the following format:
+    {'title': 'Name of anime', 'year': '(int) Year anime released', 'Scores': 'Anime Score', 'Status': 'Completed/Airing',
+    'Date aired': 'season air dates', 'Genre': 'genre of the anime', 'Other names': 'other names of anime'}
+
+    Either enter the whole link or just the series ID (The 3-4 letters alphanumeric ID preceded by ".")
+    
+    '''
+
+    data = {}
+
+    period_index = link.rfind(".")
+    series_id = link[period_index + 1:link.find("/", period_index) if link.find("/", period_index) > 0 else len(link)]
+    
+    headers = {'Referer': 'https://google.com'}
+    page = requests.get(constants.SERIES_INFO_API + series_id, headers=headers).content
+    soupedPage = BeautifulSoup(page, 'html.parser')
+     
+    data["title"] = soupedPage.find("div", attrs={"class": "title"}).get_text()
+    data["year"] = int(soupedPage.find("div", attrs={"class": "title"}).find("span").get_text())
+    
+    for metadata in soupedPage.find_all("div", attrs={"class": "meta"}):
+        if str(metadata).find("label") != -1:
+            label = metadata.find("label").get_text().replace(":", "")
+            text = re.sub(" +", " ", metadata.find("span").get_text().replace("\n", "").strip())
+            data[label] = text
+
+    return data
