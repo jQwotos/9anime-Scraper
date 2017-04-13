@@ -15,10 +15,14 @@ import anime9
 def download(data, **kwargs):
     if kwargs['directory'] is not None:
         if not os.path.exists(kwargs['directory']):
+            logging.debug("The specified directory of '%s' was not found, therefore making the directory." % (kwargs['directory']))
             os.makedirs(kwargs['directory'])
+        else:
+            logging.debug("The specified directory of '%s' was found." % (kwargs['directory']))
         os.chdir(kwargs['directory'])
 
     if not os.path.exists(data['title']):
+        logging.debug("The show '' was not previously downloaded, therefore making new folder for the show." % (data['title']))
         os.makedirs(str(data['title']))
     os.chdir(data['title'])
 
@@ -28,6 +32,7 @@ def download(data, **kwargs):
         while True:
             try:
                 for f in glob.glob("*.tmp"):
+                    logging.info("Episode '%s' was in the middle of a download. Removing and redownloading." % (f))
                     os.remove(f)
 
                 fName = episode['epNumber'] + ".mp4"
@@ -50,8 +55,12 @@ def download(data, **kwargs):
                             if chunk:
                                 f.write(chunk)
 
+                        logging.info("Finished downloading '%s'." % (fName))
                         os.rename(tempF, fName)
                         break
+                else:
+                    logging.info("The file '%s' was already fully downloaded, skipping." % (fName))
+                    break
             except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
                 logging.critical("Connection was disconnected during download... Retrying")
 
