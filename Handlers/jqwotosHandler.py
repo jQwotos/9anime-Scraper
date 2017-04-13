@@ -22,7 +22,7 @@ def download(data, **kwargs):
         os.chdir(kwargs['directory'])
 
     if not os.path.exists(data['title']):
-        logging.debug("The show '' was not previously downloaded, therefore making new folder for the show." % (data['title']))
+        logging.debug("The show '%s' was not previously downloaded, therefore making new folder for the show." % (data['title']))
         os.makedirs(str(data['title']))
     os.chdir(data['title'])
 
