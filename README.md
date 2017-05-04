@@ -2,7 +2,15 @@
 Because scraping kissanime has become quite an annoyance since it's bot detection is fairly trigger happy. This 9anime scraper is a replacement for kissanime mass downloader.
 
 # Usage
-Currently this can only be used as a module, eventually there will be a cli system that accepts argsparse like KAMD.
+9anime is implementing anti-bot measures, please make sure that you keep your clone updated.
+Currently, until I can decipher the generate token hashing script that 9anime is using. Change the variable reqkey in ```constants.py``` to the reqkey cookie that you get when you visit the website.
+
+You can do this by 
+
+- downloading the [editthiscookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg) extension on google chrome 
+- visit [9anime.to](https://9anime.to)
+- click on the editthiscookies extension and copy the reqkey
+![reqkey](http://i.imgur.com/MYXd9HA.png)
 
 Here are some basic functions
 
@@ -43,5 +51,7 @@ There are some more things in the [wiki](https://github.com/jQwotos/9anime-Scrap
 
 # Contributing
 Want to contribute to this project? We just follow the [standard github workflow](https://gist.github.com/Chaser324/ce0505fbed06b947d962). Basically just fork, code, push, pr.
+
+You can also make your own and handler and place it in the Handlers folder to share it with others.
 
 Also feel free to start a new [issue](https://github.com/jQwotos/9anime-Scraper/issues) if you find a bug or have a suggestion.
