@@ -1,9 +1,3 @@
-'''
-Name: Jason Le
-Email: le.kent.jason@gmail.com
-Github: jQwotos
-'''
-
 import os
 import logging
 import re
@@ -47,9 +41,11 @@ def search(keyword, numResults = 99):
                 for show in showsSouped:
                     numFound += 1
                     if numFound > numResults: break
+                    link = show.findAll(attrs={'class': 'name'})[0]['href']
                     shows.append({
-                        'link': show.findAll(attrs={'class': 'name'})[0]['href'],
+                        'link': link,
                         'title': show.findAll(attrs={'class': 'name'})[0].text,
+                        'id': link[-4:],
                     })
             else:
                 logging.info("Could not find any Shows when searching for %s" % (keyword))
@@ -69,11 +65,27 @@ def get_mp4(id):
         'id': id
     }
 
-    details = requests.get(constants.INFO_API, params=payload).json()
+    cookies = {
+        'reqkey': constants.reqkey
+    }
+
+    headers = {
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36',
+    }
+
+    details = requests.get(constants.INFO_API, params=payload, headers=headers, cookies = cookies).json()
+    if details['params']['token'] is None:
+        raise Exception("Server didn't respond with a token.")
     payload['token'] = details['params']['token']
+    payload['options'] = details['params']['options']
     logging.info("Acquired token %s when requested from id %s" % (payload['token'], payload['id']))
 
-    data = requests.get(constants.GRABBER_API, params=payload).json()['data']
+    data = requests.get(constants.GRABBER_API, params=payload, headers=headers, cookies = cookies).json()
+    if data['data'] is None:
+        raise Exception("Server did not respond with data.")
+    else:
+        data = data['data']
+
     logging.info("Recieved %i different links for id %s" % (len(data), payload['id']))
 
     return data
@@ -82,7 +94,9 @@ def getAllEpisodes(link):
     '''
 
     Returns the details of all of the episodes found on a series
-    [{'title': 'name of series'}, 'episodes': [{
+    [{'title': 'name of series'},
+        'id': 'id of series',
+        'episodes': [{
         'id': '9anime id for episode',
         'name': 'name of episode, typically episode number',
         'link': 'link to the episode',
@@ -98,6 +112,8 @@ def getAllEpisodes(link):
     servers = page.findAll("div", {"class": "server row"})
 
     data["title"] = page.findAll("h1", {"class": "title"})[0].text
+
+    data['id'] = page.findAll("div", {"class": "watchpage"})[0]['data-id']
 
     for server in servers:
         episodes = server.findAll("a")
@@ -169,27 +185,27 @@ def download(link, **kwargs):
 
 def getSeriesInfo(link):
     '''
-    
+
     Return information related to series in the following format:
     {'title': 'Name of anime', 'year': '(int) Year anime released', 'Scores': 'Anime Score', 'Status': 'Completed/Airing',
     'Date aired': 'season air dates', 'Genre': 'genre of the anime', 'Other names': 'other names of anime'}
 
     Either enter the whole link or just the series ID (The 3-4 letters alphanumeric ID preceded by ".")
-    
+
     '''
 
     data = {}
 
     period_index = link.rfind(".")
     series_id = link[period_index + 1:link.find("/", period_index) if link.find("/", period_index) > 0 else len(link)]
-    
+
     headers = {'Referer': 'https://google.com'}
     page = requests.get(constants.SERIES_INFO_API + series_id, headers=headers).content
     soupedPage = BeautifulSoup(page, 'html.parser')
-     
+
     data["title"] = soupedPage.find("div", attrs={"class": "title"}).get_text()
     data["year"] = int(soupedPage.find("div", attrs={"class": "title"}).find("span").get_text())
-    
+
     for metadata in soupedPage.find_all("div", attrs={"class": "meta"}):
         if str(metadata).find("label") != -1:
             label = metadata.find("label").get_text().replace(":", "")
@@ -197,3 +213,6 @@ def getSeriesInfo(link):
             data[label] = text
 
     return data
+
+if __name__ == "__main__":
+    print("This module is to be imported, not used directly.")
