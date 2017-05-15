@@ -54,7 +54,7 @@ def search(keyword, numResults = 99):
     logging.info("Found a total of %i shows when searching for %s at a limit of %i shows." % (len(shows), keyword, numResults))
     return shows
 
-def get_mp4(id):
+def get_mp4(id, **kwargs):
     '''
 
     Returns a list of MP4 links by taking in an episode ID
@@ -66,7 +66,7 @@ def get_mp4(id):
     }
 
     cookies = {
-        'reqkey': constants.reqkey
+        'reqkey': constants.reqkey if "reqkey" not in kwargs else kwargs['reqkey']
     }
 
     headers = {
@@ -74,8 +74,10 @@ def get_mp4(id):
     }
 
     details = requests.get(constants.INFO_API, params=payload, headers=headers, cookies = cookies).json()
-    if details['params']['token'] is None:
-        raise Exception("Server didn't respond with a token.")
+
+    if 'params' not in details:
+        raise Exception("Your reqkey cookie has been banned by 9anime, please get another one.")
+
     payload['token'] = details['params']['token']
     payload['options'] = details['params']['options']
     logging.info("Acquired token %s when requested from id %s" % (payload['token'], payload['id']))
