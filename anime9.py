@@ -2,14 +2,32 @@ import os
 import logging
 import re
 import glob
+import json
+from urllib.parse import urlencode
 
 import time
 import sys
 
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
 
 import constants
+
+chromeOptions = webdriver.ChromeOptions()
+prefs = {
+    "profile.managed_default_content_settings.images":2,
+    "profile.managed_default_content_settings.flash":2,
+}
+chromeOptions.add_experimental_option("prefs",prefs)
+
+driver = webdriver.Chrome(chrome_options=chromeOptions)
+
+# Loads in all the required cookies
+driver.get('https://9anime.to/watch/rezero-kara-hajimeru-isekai-seikatsu.jv78/0qkl3k')
+
+def urlenc(link, params):
+    return link + "?" + urlencode(params)
 
 # Returns a list of results
 def search(keyword, numResults = 99):
@@ -54,7 +72,7 @@ def search(keyword, numResults = 99):
     logging.info("Found a total of %i shows when searching for %s at a limit of %i shows." % (len(shows), keyword, numResults))
     return shows
 
-def get_mp4(id, **kwargs):
+def get_mp4(ID, **kwargs):
     '''
 
     Returns a list of MP4 links by taking in an episode ID
@@ -62,27 +80,21 @@ def get_mp4(id, **kwargs):
 
     '''
     payload = {
-        'id': id
+        'id': ID,
+        'update':'0',
     }
 
-    cookies = {
-        'reqkey': constants.reqkey if "reqkey" not in kwargs else kwargs['reqkey']
-    }
+    driver.get(urlenc(constants.INFO_API, payload))
+    details = json.loads(driver.find_element_by_tag_name("pre").text)
 
-    headers = {
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36',
-    }
-
-    details = requests.get(constants.INFO_API, params=payload, headers=headers, cookies = cookies).json()
-
-    if 'params' not in details:
-        raise Exception("Your reqkey cookie has been banned by 9anime, please get another one.")
-
+    #details = requests.get(constants.INFO_API, params=payload, headers=headers, cookies = cookies).json()
     payload['token'] = details['params']['token']
     payload['options'] = details['params']['options']
     logging.info("Acquired token %s when requested from id %s" % (payload['token'], payload['id']))
 
-    data = requests.get(constants.GRABBER_API, params=payload, headers=headers, cookies = cookies).json()
+    driver.get(urlenc(constants.GRABBER_API, payload))
+    data = json.loads(driver.find_element_by_tag_name("body").text)
+    #data = requests.get(constants.GRABBER_API, params=payload, headers=headers, cookies = cookies).json()
     if data['data'] is None:
         raise Exception("Server did not respond with data.")
     else:
