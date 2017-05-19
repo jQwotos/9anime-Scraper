@@ -3,14 +3,11 @@ Because scraping kissanime has become quite an annoyance since it's bot detectio
 
 # Usage
 9anime is implementing anti-bot measures, please make sure that you keep your clone updated.
-Currently, until I can decipher the generate token hashing script that 9anime is using. Change the variable reqkey in ```constants.py``` to the reqkey cookie that you get when you visit the website.
+Currently we are using [selenium](https://github.com/SeleniumHQ/selenium) in order to counteract 9anime's bot measures. This is hopefully a temporary fix and a proper update will be made soon. However, this will require you to have selenium (which can be installed through pip) and [chrome driver](https://sites.google.com/a/chromium.org/chromedriver/downloads) installed on your system.
 
-You can do this by 
-
-- downloading the [editthiscookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg) extension on google chrome 
-- visit [9anime.to](https://9anime.to)
-- click on the editthiscookies extension and copy the reqkey
-![reqkey](http://i.imgur.com/MYXd9HA.png)
+### Chrome Driver Installation
+#### Mac
+```brew install chromedriver```
 
 Here are some basic functions
 
