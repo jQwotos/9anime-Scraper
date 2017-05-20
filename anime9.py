@@ -62,19 +62,25 @@ def get_mp4(id, **kwargs):
 
     '''
     payload = {
-        'id': id
+        'id': id,
     }
 
     cookies = {
-        'reqkey': constants.reqkey if "reqkey" not in kwargs else kwargs['reqkey']
+        'reqkey': constants.reqkey if "reqkey" not in kwargs else kwargs['reqkey'],
     }
 
     headers = {
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36',
-    }
-
+          'Accept':'application/json, text/javascript, */*; q=0.01',
+          'X-DevTools-Emulate-Network-Conditions-Client-Id':'0abc8a98-1b67-42ab-9ae1-b86b894d8d60',
+          'X-Requested-With':'XMLHttpRequest',
+          'X-DevTools-Request-Id':'9444.1270',
+          'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+          'DNT':'1',
+          'Referer':'https://9anime.to/watch/eromanga-sensei.k22w/8x5z2y',
+          'Accept-Encoding':'gzip, deflate, sdch, br',
+          'Accept-Language':'en-US,en;q=0.8',
+      }
     details = requests.get(constants.INFO_API, params=payload, headers=headers, cookies = cookies).json()
-
     if 'params' not in details:
         raise Exception("Your reqkey cookie has been banned by 9anime, please get another one.")
 
