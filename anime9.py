@@ -61,12 +61,13 @@ def get_mp4(id, **kwargs):
     [{'type': 'file format', 'file': 'link to video file', 'label': 'resolution / quality of file'}]
 
     '''
+
     payload = {
-        'id': id,
+        'id': id
     }
 
     cookies = {
-        'reqkey': constants.reqkey if "reqkey" not in kwargs else kwargs['reqkey'],
+        'reqkey': constants.reqkey if 'reqkey' not in kwargs else kwargs['reqkey']
     }
 
     headers = {
@@ -84,12 +85,14 @@ def get_mp4(id, **kwargs):
     if 'params' not in details:
         raise Exception("Your reqkey cookie has been banned by 9anime, please get another one.")
 
+    payload['server'] = details['grabber'].rsplit('?server=', 1)[-1]
     payload['token'] = details['params']['token']
     payload['options'] = details['params']['options']
-    logging.info("Acquired token %s when requested from id %s" % (payload['token'], payload['id']))
 
-    data = requests.get(constants.GRABBER_API, params=payload, headers=headers, cookies = cookies).json()
-    if data['data'] is None:
+    logging.info("Acquired token %s when requested from id %s" % (payload['token'], payload['id']))
+    data = requests.get(constants.GRABBER_API, params=payload).json()
+
+    if 'data' not in data:
         raise Exception("Server did not respond with data.")
     else:
         data = data['data']
@@ -133,6 +136,7 @@ def getAllEpisodes(link):
                 "link": episode['href'],
                 "epNumber": episode['data-base'],
             })
+        # Maybe a future implementation do something with multiple servers...
         break
 
     return data
