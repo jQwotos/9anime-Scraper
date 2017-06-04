@@ -103,7 +103,7 @@ def get_mp4(id, **kwargs):
 
 def getAllEpisodes(link):
     '''
-
+    If you want all servers, use get_all_show_sources instead
     Returns the details of all of the episodes found on a series
     [{'title': 'name of series'},
         'id': 'id of series',
@@ -138,6 +138,46 @@ def getAllEpisodes(link):
             })
         # Maybe a future implementation do something with multiple servers...
         break
+
+    return data
+
+def get_all_show_sources(link):
+    '''
+    Returns the details of all of the episodes found on a series
+    [{'title': 'name of series'},
+        'id': 'id of series',
+        'episodes': [{
+        'id': '9anime id for episode',
+        'name': 'name of episode, typically episode number',
+        'link': 'link to the episode',
+        'epNumber': int(episode position number in series)
+        }]]
+
+    '''
+    data = {
+        "sources": [],
+    }
+    page = BeautifulSoup(requests.get(link).content, 'html.parser')
+
+    servers = page.findAll("div", {"class": "server row"})
+
+    data["title"] = page.findAll("h1", {"class": "title"})[0].text
+
+    data['id'] = page.findAll("div", {"class": "watchpage"})[0]['data-id']
+
+    for server in servers:
+        episodes = server.findAll("a")
+        data['sources'].append({
+            'server': server.find('label', {'class': 'name col-md-3 col-sm-4'}).text,
+            'links': [],
+        })
+        for episode in episodes:
+            data['sources'][-1]['links'].append({
+                "id": episode['data-id'],
+                "name": episode.text,
+                "link": episode['href'],
+                "epNumber": episode['data-base'],
+            })
 
     return data
 
