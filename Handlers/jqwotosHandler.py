@@ -12,6 +12,7 @@ try: import argcomplete
 except: logging.warning('Could not import the argcomplete module')
 
 import anime9
+import mycloud
 
 def makeDir(kwargs):
     # Check if the user specified a directory
@@ -49,7 +50,7 @@ def download(data, kwargs):
         while True:
             try:
                 # Remove all tmp files
-                for f in glob.glob("*.tmp"):
+                for f in glob.glob("*.ts"):
                     logging.info("Episode '%s' was in the middle of a download. Removing and redownloading." % (f))
                     os.remove(f)
 
@@ -59,6 +60,10 @@ def download(data, kwargs):
                 # If the file is not downloaded yet
                 if fName not in alreadyExists:
 
+                    '''
+
+                    Old Download Code
+                    
                     # Get the direct MP4 link
                     link = anime9.get_mp4(episode['id'])[-1]['file']
 
@@ -99,6 +104,12 @@ def download(data, kwargs):
                         # Rename the file once the download has finished
                         os.rename(tempF, fName)
                         break
+
+                    '''
+
+                    data = anime9.get_info(episode['id'])
+                    mycloud.download(data['target'].replace("//", "https://"), "%s.mp4" % (episode['epNumber'],))
+                    break
                 # If the file is already downloaded the continue to next episode
                 else:
                     logging.info("The file '%s' was already fully downloaded, skipping." % (fName))

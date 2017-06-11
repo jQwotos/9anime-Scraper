@@ -45,7 +45,7 @@ def search(keyword, numResults = 99):
                     shows.append({
                         'link': link,
                         'title': show.findAll(attrs={'class': 'name'})[0].text,
-                        'id': link[-4:],
+                        'id': link[-4:].replace('.', ''),
                     })
             else:
                 logging.info("Could not find any Shows when searching for %s" % (keyword))
@@ -54,10 +54,20 @@ def search(keyword, numResults = 99):
     logging.info("Found a total of %i shows when searching for %s at a limit of %i shows." % (len(shows), keyword, numResults))
     return shows
 
+def get_info(id):
+    payload = {
+        'id': id,
+        'update': '0',
+    }
+    data = requests.get(constants.INFO_API, params=payload).json()
+    return data
+
 def get_mp4(id, **kwargs):
     '''
 
     Returns a list of MP4 links by taking in an episode ID
+    This only works with F1 .. F999 servers
+    Checkout the mycloud.py file for mycloud support
     [{'type': 'file format', 'file': 'link to video file', 'label': 'resolution / quality of file'}]
 
     '''
