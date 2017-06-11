@@ -3,14 +3,17 @@ Because scraping kissanime has become quite an annoyance since it's bot detectio
 
 # Usage
 9anime is implementing anti-bot measures, please make sure that you keep your clone updated.
-Currently, until I can decipher the generate token hashing script that 9anime is using. Change the variable reqkey in ```constants.py``` to the reqkey cookie that you get when you visit the website.
 
-You can do this by
+I recommend using jQwotosHandler.py from Handlers folder, since that's the one I use and keep updated.
+You can simply run it by doing 
+```
+cd 9anime-Scraper/Handlers && python3 jqwotosHandler.py [link here]
+```
 
-- downloading the [editthiscookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg) extension on google chrome
-- visit [9anime.to](https://9anime.to)
-- click on the editthiscookies extension and copy the reqkey
-![reqkey](http://i.imgur.com/MYXd9HA.png)
+Find all parameters by doing a
+```
+python3 jqwotosHandler.py --help
+```
 
 Here are some basic functions
 
