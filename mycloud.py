@@ -32,7 +32,7 @@ def _get_direct_link(link):
 def _increment_link(link, increment):
     return link.replace('{{INCREMENT}}', '%04d' % (increment,))
 
-def download(link, fname):
+def download(link, fname, passedArgs={}):
     '''
 
     Downloads a file from MyCloud based on link and filename
@@ -43,7 +43,7 @@ def download(link, fname):
     increment = 0
     finished = False
 
-    tempName = "%s.ts" % (fname,)
+    tempName = "%s.ts.tmp" % (fname,)
     with open(tempName, 'wb') as f:
         while True:
             increment += 1
@@ -63,11 +63,14 @@ def download(link, fname):
                 break
 
     if finished:
-        try:
-            subprocess.run(['ffmpeg', '-i', tempName, '%s' % (fname,)])
-        except:
-            print("Please install FFMPEG")
-        os.remove(tempName)
+        if 'convert' in passedArgs and passedArgs['convert']:
+            try:
+                subprocess.run(['ffmpeg', '-i', tempName, '%s' % (fname,)])
+            except:
+                print("Please install FFMPEG")
+            os.remove(tempName)
+        else:
+            os.rename(tempName, fname)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

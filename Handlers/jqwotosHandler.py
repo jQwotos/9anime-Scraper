@@ -27,14 +27,14 @@ def makeDir(kwargs):
         # Navigate into the specified directory
         os.chdir(kwargs['directory'])
 
-def download(data, kwargs):
+def download(data, args):
     '''
         Downloads the show
     '''
-    makeDir(kwargs)
+    makeDir(args)
 
     # If kwargs['force'] is not specified by the user do not make a new folder
-    if kwargs['force'] is False:
+    if args['force'] is False:
         if not os.path.exists(data['title']):
             logging.debug("The show '%s' was not previously downloaded, therefore making new folder for the show." % (data['title']))
             os.makedirs(str(data['title']))
@@ -50,12 +50,15 @@ def download(data, kwargs):
         while True:
             try:
                 # Remove all tmp files
-                for f in glob.glob("*.ts"):
+                for f in glob.glob("*.tmp"):
                     logging.info("Episode '%s' was in the middle of a download. Removing and redownloading." % (f))
                     os.remove(f)
 
                 # The name of the final file
-                fName = episode['epNumber'] + ".mp4"
+                if 'convert' in args and args['convert']:
+                    fName = episode['epNumber'] + ".mp4"
+                else:
+                    fName = episode['epNumber'] + ".mp2"
 
                 # If the file is not downloaded yet
                 if fName not in alreadyExists:
@@ -63,7 +66,7 @@ def download(data, kwargs):
                     '''
 
                     Old Download Code
-                    
+
                     # Get the direct MP4 link
                     link = anime9.get_mp4(episode['id'])[-1]['file']
 
@@ -108,7 +111,7 @@ def download(data, kwargs):
                     '''
 
                     data = anime9.get_info(episode['id'])
-                    mycloud.download(data['target'].replace("//", "https://"), "%s.mp4" % (episode['epNumber'],))
+                    mycloud.download(data['target'].replace("//", "https://"), fName, args)
                     break
                 # If the file is already downloaded the continue to next episode
                 else:
@@ -119,8 +122,8 @@ def download(data, kwargs):
             except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
                 logging.critical("Connection was disconnected during download... Retrying")
 
-def findNDownload(link, kwargs):
-    download(anime9.getAllEpisodes(link), kwargs)
+def findNDownload(link, args):
+    download(anime9.getAllEpisodes(link), args)
 
 def main():
     links = []
@@ -134,6 +137,7 @@ def main():
     parser.add_argument('-f', '--force', action="store_true", help="Do not make a folder with the name of the show, just download it to specified directory.")
     # WIP parser.add_argument('-w', '--write', action="store_true", help="Just output all of the links into a file specified by '-d' instead of downloading the episodes.")
     parser.add_argument('-l', '--list', type=str, help="Download from a list of links in a specified file")
+    parser.add_argument('-c', '--convert', action="store_true", help="Convert the .ts to a .mp4 file.")
     parser.add_argument('link', type=str, help="Link to show", nargs='?')
 
     args = vars(parser.parse_args())
